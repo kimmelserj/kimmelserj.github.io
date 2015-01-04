@@ -2,22 +2,22 @@
 <html lang="ru">
   <head>
     <meta charset="utf-8">
-    <title>Добро пожаловать - Киммель Сергей</title>
-    <link rel="stylesheet" href="/stylesheet.css">
+    <title><%= @item[:title] + ' - ' if @item[:title] %>Киммель Сергей</title>
+    <link rel="stylesheet" href="<%= @items['/stylesheet/'].path %>">
     <link rel="author" href="https://plus.google.com/+%D0%A1%D0%B5%D1%80%D0%B3%D0%B5%D0%B9%D0%9A%D0%B8%D0%BC%D0%BC%D0%B5%D0%BB%D1%8C" />
     <meta name="author" content="Киммель Сергей">
-    
-    
+    <% if @item[:description] %><meta name="description" content="<%= @item[:description] %>"><% end %>
+    <% if @item[:keywords] %><meta name="keywords" content="<%= @item[:keywords] %>"><% end %>
     <meta http-equiv="content-language" content="ru" />
 
     <!-- you don't need to keep this, but it's cool for stats! -->
-    <meta name="generator" content="nanoc 3.7.4">
+    <meta name="generator" content="nanoc <%= Nanoc::VERSION %>">
   </head>
   <body>
     <main>
       <article>
-        <h1><header>Добро пожаловать</header></h1>
-        <p>Данный сайт не отличается чем-то от многих других в интернете. Я также буду писать то, что считаю интересным или то чем хочется поделиться с людьми.</p>
+        <h1><header><%= @item[:title] %></header></h1>
+        <%= yield %>
       </article>
     </main>
     <nav id="navbar">

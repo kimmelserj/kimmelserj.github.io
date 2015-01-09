@@ -1,0 +1,11 @@
+# Site settings
+title: Киммель Сергей
+email: i_am@kimmelserj.ru
+description: Данный сайт не отличается чем-то от многих других в интернете. Я также буду писать то, что считаю интересным или то, чем хочется поделиться с людьми.
+baseurl: "" # the subpath of your site, e.g. /blog/
+url: "http://kimmelserj.ru"
+github_username: kimmelserj
+
+# Build settings
+markdown: kramdown
+exclude: ['Gemfile', 'Gemfile.lock']

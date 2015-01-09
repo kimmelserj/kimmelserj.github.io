@@ -1,1 +1,2 @@
-.nanoc/tmp
+_site
+.sass-cache

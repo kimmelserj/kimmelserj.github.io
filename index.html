@@ -1,25 +1,138 @@
----
-layout: default
----
+<!DOCTYPE html>
+<html lang="ru-ru">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>Киммель Сергей - Киммель Сергей</title>
+    
+    <meta name="description" content="">
+    <meta name="author" content="">
+    
+    <link href="http://kimmelserj.ru/an-old-hope.min.css" rel="stylesheet">
+    <link href="http://kimmelserj.ru/style.css" rel="stylesheet">
+    
+    <link rel="apple-touch-icon" href="http://kimmelserj.ru/apple-touch-icon.png">
+    <link rel="icon" href="http://kimmelserj.ru/favicon.ico">
+    <meta name="generator" content="Hugo 0.68.1" />
+    
+    <link rel="alternate" type="application/atom+xml" href="http://kimmelserj.ru/index.xml" title="Киммель Сергей">
+    
+    
+    <script>
+      function setTheme() {
+        const time = new Date();
 
-<div class="home">
+        const prev = localStorage.getItem('date');
+        const date = String(time.getMonth() + 1) + '.' + String(time.getDate());
 
-  <h1 class="page-heading">Статьи</h1>
+        const now = time.getTime();
+        let sunrise;
+        let sunset;
 
-  <ul class="post-list">
-    {% for post in site.posts %}
-      <li>
-        <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }}</span>
+        function setBodyClass() {
+          if (now > sunrise && now < sunset) return;
+          document.body.classList.add('dark');
+        }
 
-        <h2>
-          <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
-        </h2>
-      </li>
-    {% else %}
-      Статей пока нет
-    {% endfor %}
-  </ul>
+        if (date !== prev) {
+          fetch('https://api.ipgeolocation.io/astronomy?apiKey=5ed37d85103e4defa5df4c5298ed5215')
+            .then(res => res.json())
+            .then(data => {
+              sunrise = data.sunrise.split(':').map(Number);
+              sunset = data.sunset.split(':').map(Number);
+            })
+            .catch(() => {
+              sunrise = [7, 0];
+              sunset = [19, 0];
+            })
+            .finally(() => {
+              sunrise = time.setHours(sunrise[0], sunrise[1], 0);
+              sunset = time.setHours(sunset[0], sunset[1], 0);
+              setBodyClass();
+              localStorage.setItem('sunrise', sunrise);
+              localStorage.setItem('sunset', sunset);
+            });
+          localStorage.setItem('date', date);
+        } else {
+          sunrise = Number(localStorage.getItem('sunrise'));
+          sunset = Number(localStorage.getItem('sunset'));
+          setBodyClass();
+        }
+      }
+    </script>
+  </head>
+  <body class="list home">
+    <script>
+      setTheme();
+    </script>
+    <header class="header">
+      <nav class="nav">
+        <h1 class="logo"><a href="http://kimmelserj.ru/">Киммель Сергей</a></h1>
+        <ul class="menu">
+          <li>
+            <a href="/about/">О себе</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main class="main">
 
-  <p class="rss-subscribe">подписаться <a href="{{ "/feed.xml" | prepend: site.baseurl }}">через RSS</a></p>
+<header class="page-header"><h1>Киммель Сергей</h1></header>
 
-</div>
+<article class="first-entry">
+  <header class="entry-header">
+    <h2>Symfony внутри Docker (разработка при помощи пересборки образа контейнера)</h2>
+  </header>
+  <section class="entry-content">
+   <p>Подход, рассматриваемый с данной статье, подразумевает что у вас есть так называемый “базовый Docker-образ” приложения, который должен содержать в себе всё необходимое ПО для функционирования приложения за исключением самого кода приложения. Сам код приложения будет располагаться в директории /app, так что сама директория /app должна существовать в “базовом образе”, но должна быть пуста. Также подразумевается чтобы вы знакомы с такой утилитой как docker-compose.
+Начнём с docker-compose.yml Ожидается что файлы docker-compose.yml и Dockerfile будут располагаться в корне Symfony-проекта....</p>
+  </section>
+  <footer class="entry-footer">
+    <time>September 26, 2016</time>
+  </footer>
+  <a class="entry-link" href="http://kimmelserj.ru/2016/09/26/symfony-inside-docker-development-over-build/"></a>
+</article>
+<article class="post-entry">
+  <header class="entry-header">
+    <h2>Symfony внутри Docker (разработка при помощи разделов (volumes))</h2>
+  </header>
+  <section class="entry-content">
+   <p>У разработки при помощи разделов я вижу один существенный плюс - это молниеносное обновление кода в контейнере не требующее каких либо дополнительных телодвижений. Но и минусов тоже предостаточно, чтобы свести на нет такое удобство. О минусах данного подхода я кратко написал [здесь]({% post_url 2016-08-29-symfony-inside-docker-development-variants %}).
+Начинаем Сразу скажу что в контейнере код проекта будет располагаться в директории /app. Это важно, так как это будет одной из первых причин наших проблем в дальнейшем....</p>
+  </section>
+  <footer class="entry-footer">
+    <time>September 5, 2016</time>
+  </footer>
+  <a class="entry-link" href="http://kimmelserj.ru/2016/09/05/symfony-inside-docker-development-over-volume/"></a>
+</article>
+<article class="post-entry">
+  <header class="entry-header">
+    <h2>Symfony внутри Docker (варианты разработки в Docker-контейнере)</h2>
+  </header>
+  <section class="entry-content">
+   <p>После нескольких месяцев разработки Symfony-проекта были опробованы два варианта разработки в Docker-контейнере. Первый вариант заключается в подключении директории с кодом проекта в виде раздела (volume). Второй вариант требует пересборки образа контейнера после каждого изменения кода проекта.
+Оба варианта я рассмотрю более детально в отдельных статьях, а сейчас лишь хочу привести краткое резюме обоих вариантов.
+Подключение директории с кодом как раздела в Docker-контейнере Плюсы:
+ Изменения кода сразу отображаются в контейнере (прямо как в vagrant&#39;е и даже быстрее чем в vagrant&#39;е)....</p>
+  </section>
+  <footer class="entry-footer">
+    <time>August 29, 2016</time>
+  </footer>
+  <a class="entry-link" href="http://kimmelserj.ru/2016/08/29/symfony-inside-docker-development-variants/"></a>
+</article></main>
+<footer class="footer">
+  <span>&copy; 2020 <a href="http://kimmelserj.ru/">Киммель Сергей</a></span>
+  <span>&middot;</span>
+  <span>Powered by <a href="https://gohugo.io/" rel="noopener" target="_blank">Hugo️️</a>️</span>
+  <span>&middot;</span>
+  <span>Theme️ <a href="https://github.com/nanxiaobei/hugo-paper" rel="noopener" target="_blank">Paper</a></span>
+</footer>
+<script src="http://kimmelserj.ru/highlight.min.js"></script>
+<script>
+  hljs.initHighlightingOnLoad();
+</script>
+</body>
+</html>
+

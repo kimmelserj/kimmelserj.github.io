@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ru-ru">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>Symfony внутри Docker (разработка при помощи разделов (volumes)) - Киммель Сергей</title>
+    
+    <meta name="description" content="У разработки при помощи разделов я вижу один существенный плюс - это молниеносное обновление кода в контейнере не требующее каких либо дополнительных телодвижений. Но и минусов тоже предостаточно, чтобы свести на нет такое удобство. О минусах данного подхода я кратко написал [здесь]({% post_url 2016-08-29-symfony-inside-docker-development-variants %}).
+Начинаем Сразу скажу что в контейнере код проекта будет располагаться в директории /app. Это важно, так как это будет одной из первых причин наших проблем в дальнейшем.">
+    <meta name="author" content="">
+    
+    <link href="http://kimmelserj.ru/an-old-hope.min.css" rel="stylesheet">
+    <link href="http://kimmelserj.ru/style.css" rel="stylesheet">
+    
+    <link rel="apple-touch-icon" href="http://kimmelserj.ru/apple-touch-icon.png">
+    <link rel="icon" href="http://kimmelserj.ru/favicon.ico">
+    <meta name="generator" content="Hugo 0.68.1" />
+    
+    <link rel="alternate" type="application/atom+xml" href="http://kimmelserj.ru/index.xml" title="Киммель Сергей">
+    
+    
+    <script>
+      function setTheme() {
+        const time = new Date();
+
+        const prev = localStorage.getItem('date');
+        const date = String(time.getMonth() + 1) + '.' + String(time.getDate());
+
+        const now = time.getTime();
+        let sunrise;
+        let sunset;
+
+        function setBodyClass() {
+          if (now > sunrise && now < sunset) return;
+          document.body.classList.add('dark');
+        }
+
+        if (date !== prev) {
+          fetch('https://api.ipgeolocation.io/astronomy?apiKey=5ed37d85103e4defa5df4c5298ed5215')
+            .then(res => res.json())
+            .then(data => {
+              sunrise = data.sunrise.split(':').map(Number);
+              sunset = data.sunset.split(':').map(Number);
+            })
+            .catch(() => {
+              sunrise = [7, 0];
+              sunset = [19, 0];
+            })
+            .finally(() => {
+              sunrise = time.setHours(sunrise[0], sunrise[1], 0);
+              sunset = time.setHours(sunset[0], sunset[1], 0);
+              setBodyClass();
+              localStorage.setItem('sunrise', sunrise);
+              localStorage.setItem('sunset', sunset);
+            });
+          localStorage.setItem('date', date);
+        } else {
+          sunrise = Number(localStorage.getItem('sunrise'));
+          sunset = Number(localStorage.getItem('sunset'));
+          setBodyClass();
+        }
+      }
+    </script>
+  </head>
+  <body class="single">
+    <script>
+      setTheme();
+    </script>
+    <header class="header">
+      <nav class="nav">
+        <p class="logo"><a href="http://kimmelserj.ru/">Киммель Сергей</a></p>
+        <ul class="menu">
+          <li>
+            <a href="/about/">О себе</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main class="main">
+
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">Symfony внутри Docker (разработка при помощи разделов (volumes))</h1>
+    <div class="post-meta">September 5, 2016</div>
+  </header>
+  <div class="post-content"><p>У разработки при помощи разделов я вижу один существенный плюс - это молниеносное обновление кода в контейнере не требующее каких либо дополнительных телодвижений. Но и минусов тоже предостаточно, чтобы свести на нет такое удобство. О минусах данного подхода я кратко написал [здесь]({% post_url 2016-08-29-symfony-inside-docker-development-variants %}).</p>
+<h2 id="начинаем">Начинаем</h2>
+<p>Сразу скажу что в контейнере код проекта будет располагаться в директории <code>/app</code>. Это важно, так как это будет одной из первых причин наших проблем в дальнейшем. Примеры кода представлены для проектов использующих Symfony 3.</p>
+<p>В проекте будет активно использоваться <code>docker-compose</code>, так как он очень сильно облегчает задачу по поднятию у себя на машине рабочего окружения для проекта. Сейчас я приведу пример того, как обычно выглядит <code>docker-compose.yml</code> в разрабатываемых Symfony-проектах:</p>
+<pre><code>version: '2'
+services:
+    db:
+        image: postgres:9.5
+        environment:
+            POSTGRES_PASSWORD: megapassword
+            POSTGRES_USER: app_user
+            POSTGRES_DB: app_db
+    app:
+        image: app-base-image
+        volumes:
+            - .:/app
+        links:
+            - db
+</code></pre>
+<p>Образ с именем <code>app-base-image</code> должен содержать всё необходимое для функционирования кода в контейнере. В данной статье не будем заострять внимание на сборке подобного образа, а пока будем считать, что у нас есть такой образ (может я освещу данный аспект в отдельной статье).</p>
+<p>А основное внимание мы уделим следующим строчкам:</p>
+<pre><code>        volumes:
+            - .:/app
+</code></pre>
+<p>Именно эти строки обеспечивают возможность видеть директорию с кодом проекта внутри контейнера. Причём если какой-то процесс в контейнере создаст или модифицирует какой-либо файл в директории <code>/app</code>, то эти изменения сразу же появятся в вашей директории с кодом проекта. Но в этом есть и минус, который я описал [здесь]({% post_url 2016-08-29-symfony-inside-docker-development-variants %}).</p>
+<h2 id="драка-за-кэш-и-проблема-с-абсолютными-путями">Драка за кэш и проблема с абсолютными путями</h2>
+<p>Когда я только начал использовать данный вариант, то в течение нескольких дней периодически замечал проблему в виде ошибки &ldquo;не могу найти файл /home/serj/projects/symfony-app/var/cache/&hellip;&quot;. По пути было видно, что код пытался подгрузить кэш основываясь на абсолютных путях моей основной системы. А это происходило по причине того, что я на основной системе прогревал кэш при помощи команды <code>bin/console cache:warmup</code> и в результате выполнения команды в кэш записывались абсолютные пути к директории с кодом проекта, а в файловой системе контейнера другие пути.</p>
+<p>После небольших раздумий я пришёл к выводу, что проблема, в основном, в файлах директории <code>var</code>. И решил использовать возможность Symfony переопределять путь к директориям <code>var/cache</code> и <code>var/log</code>. В результате, в файле <code>app/AppKernel.php</code> были модифицированы методы <code>getCacheDir</code> и <code>getLogDir</code>:</p>
+<p>{% highlight php startinline=true %}
+public function getCacheDir()
+{
+if (in_array($this-&gt;getEnvironment(), [&lsquo;dev&rsquo;, &lsquo;test&rsquo;])) {
+$baseDir = &lsquo;/tmp/app&rsquo;;
+} else {
+$baseDir = dirname(<strong>DIR</strong>);
+}</p>
+<pre><code>return $baseDir.'/var/cache/'.$this-&gt;getEnvironment();
+</code></pre>
+<p>}</p>
+<p>public function getLogDir()
+{
+if (in_array($this-&gt;getEnvironment(), [&lsquo;dev&rsquo;, &lsquo;test&rsquo;])) {
+$baseDir = &lsquo;/tmp/app&rsquo;;
+} else {
+$baseDir = dirname(<strong>DIR</strong>);
+}</p>
+<pre><code>return $baseDir.'/var/logs';
+</code></pre>
+<p>}
+{% endhighlight %}</p>
+<p>Также нужно было переопределить местоположение директории для сессий <code>var/sessions</code> в файле <code>app/config/config.yml</code>:</p>
+<pre><code>framework:
+    ...
+    session:
+        handler_id: session.handler.native_file
+        save_path: &quot;%kernel.cache_dir%/../../var/sessions/%kernel.environment%&quot;
+</code></pre>
+<p>В директории <code>var</code> генерируются ещё два файла: <code>bootstrap.php.cache</code> и <code>SymfonyRequirements.php</code>. Их переносить нельзя, так как эти файлы инклудятся в других PHP-файлах по относительному пути. Так что мне периодически приходится фиксить владельца файлов на основной системе следующими командами:</p>
+<pre><code>sudo chown serj:serj var/bootstrap.php.cache
+sudo chown serj:serj var/SymfonyRequirements.php
+</code></pre>
+<p>Со временем, это начинает жуть как раздражать, но пока другого варианта я не нашёл.</p>
+<h2 id="phpstorm-и-плагин-для-symfony">PHPStorm и плагин для Symfony</h2>
+<p>В работе я очень активно использую плагин <a href="https://plugins.jetbrains.com/plugin/7219">Symfony Plugin</a> в PHPStorm. И после выполненых выше манипуляций, нужно будет подправить настройки плагина. Для этого нужно перейти в настройки плагина <code>File -&gt; Settings -&gt; Languages &amp; Framework -&gt; PHP -&gt; Symfony</code> и поменять пути:</p>
+<p>Path to urlGenerator.php: <code>/tmp/app/var/cache/dev/appDevUrlGenerator.php</code></p>
+<p>Translation Root Path: <code>/tmp/app/var/cache/dev/translations</code></p>
+<p>Иногда плагин не подтягивает новые изменения, так как нужно прогреть кэш следующей командой:</p>
+<pre><code>bin/console cache:warmup
+</code></pre>
+<h2 id="заключение">Заключение</h2>
+<p>В целом, если вы готовы терпеть периодические ошибки при выполнении команды <code>composer install</code> из-за нехватки прав на файлы <code>bootstrap.php.cache</code> и <code>SymfonyRequirements.php</code> и вы frontend-разработчик, то это ваш вариант.</p>
+</div>
+  
+</article></main>
+<footer class="footer">
+  <span>&copy; 2020 <a href="http://kimmelserj.ru/">Киммель Сергей</a></span>
+  <span>&middot;</span>
+  <span>Powered by <a href="https://gohugo.io/" rel="noopener" target="_blank">Hugo️️</a>️</span>
+  <span>&middot;</span>
+  <span>Theme️ <a href="https://github.com/nanxiaobei/hugo-paper" rel="noopener" target="_blank">Paper</a></span>
+</footer>
+<script src="http://kimmelserj.ru/highlight.min.js"></script>
+<script>
+  hljs.initHighlightingOnLoad();
+</script>
+</body>
+</html>
+

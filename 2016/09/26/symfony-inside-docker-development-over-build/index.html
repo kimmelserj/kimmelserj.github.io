@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru-ru">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>Symfony внутри Docker (разработка при помощи пересборки образа контейнера) - Киммель Сергей</title>
+    
+    <meta name="description" content="Подход, рассматриваемый с данной статье, подразумевает что у вас есть так называемый &ldquo;базовый Docker-образ&rdquo; приложения, который должен содержать в себе всё необходимое ПО для функционирования приложения за исключением самого кода приложения. Сам код приложения будет располагаться в директории /app, так что сама директория /app должна существовать в &ldquo;базовом образе&rdquo;, но должна быть пуста. Также подразумевается чтобы вы знакомы с такой утилитой как docker-compose.
+Начнём с docker-compose.yml Ожидается что файлы docker-compose.yml и Dockerfile будут располагаться в корне Symfony-проекта.">
+    <meta name="author" content="">
+    
+    <link href="http://kimmelserj.ru/an-old-hope.min.css" rel="stylesheet">
+    <link href="http://kimmelserj.ru/style.css" rel="stylesheet">
+    
+    <link rel="apple-touch-icon" href="http://kimmelserj.ru/apple-touch-icon.png">
+    <link rel="icon" href="http://kimmelserj.ru/favicon.ico">
+    <meta name="generator" content="Hugo 0.68.1" />
+    
+    <link rel="alternate" type="application/atom+xml" href="http://kimmelserj.ru/index.xml" title="Киммель Сергей">
+    
+    
+    <script>
+      function setTheme() {
+        const time = new Date();
+
+        const prev = localStorage.getItem('date');
+        const date = String(time.getMonth() + 1) + '.' + String(time.getDate());
+
+        const now = time.getTime();
+        let sunrise;
+        let sunset;
+
+        function setBodyClass() {
+          if (now > sunrise && now < sunset) return;
+          document.body.classList.add('dark');
+        }
+
+        if (date !== prev) {
+          fetch('https://api.ipgeolocation.io/astronomy?apiKey=5ed37d85103e4defa5df4c5298ed5215')
+            .then(res => res.json())
+            .then(data => {
+              sunrise = data.sunrise.split(':').map(Number);
+              sunset = data.sunset.split(':').map(Number);
+            })
+            .catch(() => {
+              sunrise = [7, 0];
+              sunset = [19, 0];
+            })
+            .finally(() => {
+              sunrise = time.setHours(sunrise[0], sunrise[1], 0);
+              sunset = time.setHours(sunset[0], sunset[1], 0);
+              setBodyClass();
+              localStorage.setItem('sunrise', sunrise);
+              localStorage.setItem('sunset', sunset);
+            });
+          localStorage.setItem('date', date);
+        } else {
+          sunrise = Number(localStorage.getItem('sunrise'));
+          sunset = Number(localStorage.getItem('sunset'));
+          setBodyClass();
+        }
+      }
+    </script>
+  </head>
+  <body class="single">
+    <script>
+      setTheme();
+    </script>
+    <header class="header">
+      <nav class="nav">
+        <p class="logo"><a href="http://kimmelserj.ru/">Киммель Сергей</a></p>
+        <ul class="menu">
+          <li>
+            <a href="/about/">О себе</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main class="main">
+
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">Symfony внутри Docker (разработка при помощи пересборки образа контейнера)</h1>
+    <div class="post-meta">September 26, 2016</div>
+  </header>
+  <div class="post-content"><p>Подход, рассматриваемый с данной статье, подразумевает что у вас есть так называемый &ldquo;базовый Docker-образ&rdquo; приложения, который должен содержать в себе всё необходимое ПО для функционирования приложения за исключением самого кода приложения. Сам код приложения будет располагаться в директории <code>/app</code>, так что сама директория <code>/app</code> должна существовать в &ldquo;базовом образе&rdquo;, но должна быть пуста. Также подразумевается чтобы вы знакомы с такой утилитой как <code>docker-compose</code>.</p>
+<h2 id="начнём-с-docker-composeyml">Начнём с docker-compose.yml</h2>
+<p>Ожидается что файлы <code>docker-compose.yml</code> и <code>Dockerfile</code> будут располагаться в корне Symfony-проекта. Возьмём для примера следующий <code>docker-compose.yml</code>:</p>
+<pre><code>version: '2'
+services:
+    db:
+        image: postgres:9.5
+        environment:
+            POSTGRES_PASSWORD: megapassword
+            POSTGRES_USER: app_user
+            POSTGRES_DB: app_db
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        environment:
+            POSTGRES_PASSWORD: megapassword
+            POSTGRES_USER: app_user
+            POSTGRES_DB: app_db
+        links:
+            - db
+        ports:
+            - &quot;8080:80&quot;
+</code></pre>
+<p>Основное внимание мы уделим следующим строчкам:</p>
+<pre><code>        build:
+            context: .
+            dockerfile: Dockerfile
+</code></pre>
+<p>Благодаря данным строчкам, при каждом выполнении <code>docker-compose up</code> будет выполняться сборка нового образа из которого потом будет запускаться контейнер с Symfony-приложением.</p>
+<p>Файл <code>Dockerfile</code> имеет следующее содержимое:</p>
+<pre><code>FROM myregistry.mycompany.com/app-base:v1
+COPY . /app
+</code></pre>
+<p>Для сборки образа с Symfony-приложением используется базовый образ, который расположен в Docker Registry <code>myregistry.mycompany.com/app-base:v1</code> (тему базового образа я постараюсь осветить в отдельной статье). И единственное действие, которое делается при сборке конечного образа, это копирование содержимого директории с проектом в директорию <code>/app</code> в Docker-образе.</p>
+<p>После сборки образа должен получиться образ, на основе которого можно запустить Docker-контейнер с приложением.</p>
+<p>Ещё в корень проекта можно добавить файл <code>.dockerignore</code>, куда можно прописать директории и файлы которые не должны попасть в образ контейнера. Например это поддиректории директории <code>var</code>. Файл <code>.dockerignore</code> может выглядеть следующим образом:</p>
+<pre><code>var/*
+Dockerfile
+</code></pre>
+<p>Исключение поддиректорий директории <code>var</code> помогает ускорить сборку образа, так как в контекст сборки не попадают кэш и логи, которые никак не пригодятся при выполнении приложения в контейнере, так как при старте контейнера приложение всё равно должно прогревать свой кэш, а логи по идеологии Docker'а должны выводиться на стандартный выход, а не в файл. Ну о логах будет более подробнее в другой статье.</p>
+<h2 id="сборка-и-пересборка-образа">Сборка и пересборка образа</h2>
+<p>Имея выше перечисленное можно выполнить команду <code>docker-compose up</code> и подождать несколько секунд пока текущее состояние вашей директории с кодом будет помещено в образ и на основе этого образа будет запущен Docker-контейнер с приложением. После этого можно открыть приложение по адресу http://localhost:8080/ и увидеть результат.</p>
+<p>Стоит обратить внимание на то, что при изменении кода в директории с кодом проекта, изменения не попадут автоматически в запущенный контейнер. Если вы захотите увидеть результат своих правок в коде, то вам придётся проделать следующие действия в консоли:</p>
+<pre><code>docker-compose stop # останавливаем запущение контейнеры
+docker-compose build app # пересобираем образ с новыми изменениями
+docker-compose rm -f app # удаляем контейнер со старым кодом приложения
+docker-compose up # стартуем все контейнеры
+</code></pre>
+<p>Данный способ плох тем, что после каждого изменения кода требуется пересобирать образ и стартовать новый контейнер, что занимает не мало времени. Но плюсом является большая близость к реальному процессу деплоя приложения на сервер, а также бОльшая универсальность, так как данный способ также больше подходит для проектов, разрабатываемых на компилируемых языках программирования (при изменении кода, в отличии от PHP, та же программа на C потребует перекомпиляции и перезапуска процесса программы, чтобы можно было увидеть уже новое поведение приложения).</p>
+<p>Для разработки кода всяческих фоновых процессов я предпочитаю использовать именно этот вариант. При разработке кода фоновых процессов не требуется часто пересоздавать образ контейнера, так как временный интервалы между потребностями взглянуть на результат гораздо больше, чем при разработке frontend-части проекта, где любая правка требует нажатия кнопки F5 в браузере, чтобы увидеть результат изменения кода (это моё личное мнение как бэкэндера).</p>
+<p>На этом всё. В следующих статьях я постараюсь осветить темы, которые по тексту выше обещал осветить. Также постараюсь написать серию статей на тему &ldquo;Symfony-приложение как 12-факторное приложение&rdquo;.</p>
+</div>
+  
+</article></main>
+<footer class="footer">
+  <span>&copy; 2020 <a href="http://kimmelserj.ru/">Киммель Сергей</a></span>
+  <span>&middot;</span>
+  <span>Powered by <a href="https://gohugo.io/" rel="noopener" target="_blank">Hugo️️</a>️</span>
+  <span>&middot;</span>
+  <span>Theme️ <a href="https://github.com/nanxiaobei/hugo-paper" rel="noopener" target="_blank">Paper</a></span>
+</footer>
+<script src="http://kimmelserj.ru/highlight.min.js"></script>
+<script>
+  hljs.initHighlightingOnLoad();
+</script>
+</body>
+</html>
+

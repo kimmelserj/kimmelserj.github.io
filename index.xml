@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Киммель Сергей</title>
+    <link>http://kimmelserj.ru/</link>
+    <description>Recent content on Киммель Сергей</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ru-ru</language>
+    <lastBuildDate>Mon, 26 Sep 2016 12:00:00 +0300</lastBuildDate>
+    
+	<atom:link href="http://kimmelserj.ru/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Symfony внутри Docker (разработка при помощи пересборки образа контейнера)</title>
+      <link>http://kimmelserj.ru/2016/09/26/symfony-inside-docker-development-over-build/</link>
+      <pubDate>Mon, 26 Sep 2016 12:00:00 +0300</pubDate>
+      
+      <guid>http://kimmelserj.ru/2016/09/26/symfony-inside-docker-development-over-build/</guid>
+      <description>Подход, рассматриваемый с данной статье, подразумевает что у вас есть так называемый &amp;ldquo;базовый Docker-образ&amp;rdquo; приложения, который должен содержать в себе всё необходимое ПО для функционирования приложения за исключением самого кода приложения. Сам код приложения будет располагаться в директории /app, так что сама директория /app должна существовать в &amp;ldquo;базовом образе&amp;rdquo;, но должна быть пуста. Также подразумевается чтобы вы знакомы с такой утилитой как docker-compose.
+Начнём с docker-compose.yml Ожидается что файлы docker-compose.yml и Dockerfile будут располагаться в корне Symfony-проекта.</description>
+    </item>
+    
+    <item>
+      <title>Symfony внутри Docker (разработка при помощи разделов (volumes))</title>
+      <link>http://kimmelserj.ru/2016/09/05/symfony-inside-docker-development-over-volume/</link>
+      <pubDate>Mon, 05 Sep 2016 12:00:00 +0300</pubDate>
+      
+      <guid>http://kimmelserj.ru/2016/09/05/symfony-inside-docker-development-over-volume/</guid>
+      <description>У разработки при помощи разделов я вижу один существенный плюс - это молниеносное обновление кода в контейнере не требующее каких либо дополнительных телодвижений. Но и минусов тоже предостаточно, чтобы свести на нет такое удобство. О минусах данного подхода я кратко написал [здесь]({% post_url 2016-08-29-symfony-inside-docker-development-variants %}).
+Начинаем Сразу скажу что в контейнере код проекта будет располагаться в директории /app. Это важно, так как это будет одной из первых причин наших проблем в дальнейшем.</description>
+    </item>
+    
+    <item>
+      <title>Symfony внутри Docker (варианты разработки в Docker-контейнере)</title>
+      <link>http://kimmelserj.ru/2016/08/29/symfony-inside-docker-development-variants/</link>
+      <pubDate>Mon, 29 Aug 2016 12:00:00 +0300</pubDate>
+      
+      <guid>http://kimmelserj.ru/2016/08/29/symfony-inside-docker-development-variants/</guid>
+      <description>После нескольких месяцев разработки Symfony-проекта были опробованы два варианта разработки в Docker-контейнере. Первый вариант заключается в подключении директории с кодом проекта в виде раздела (volume). Второй вариант требует пересборки образа контейнера после каждого изменения кода проекта.
+Оба варианта я рассмотрю более детально в отдельных статьях, а сейчас лишь хочу привести краткое резюме обоих вариантов.
+Подключение директории с кодом как раздела в Docker-контейнере Плюсы:
+ Изменения кода сразу отображаются в контейнере (прямо как в vagrant&#39;е и даже быстрее чем в vagrant&#39;е).</description>
+    </item>
+    
+    <item>
+      <title>О себе</title>
+      <link>http://kimmelserj.ru/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://kimmelserj.ru/about/</guid>
+      <description>Разработчик программного обеспечения и автоматизированных систем. Сейчас оттачиваю свои знания и навыки в области Golang, PHP, Symfony, Docker. Ещё есть начинания в области Continuous Delivery.</description>
+    </item>
+    
+  </channel>
+</rss>

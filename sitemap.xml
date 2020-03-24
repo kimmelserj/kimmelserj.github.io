@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>http://kimmelserj.ru/2016/09/26/symfony-inside-docker-development-over-build/</loc>
+    <lastmod>2016-09-26T12:00:00+03:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://kimmelserj.ru/</loc>
+    <lastmod>2016-09-26T12:00:00+03:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://kimmelserj.ru/2016/09/05/symfony-inside-docker-development-over-volume/</loc>
+    <lastmod>2016-09-05T12:00:00+03:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://kimmelserj.ru/2016/08/29/symfony-inside-docker-development-variants/</loc>
+    <lastmod>2016-08-29T12:00:00+03:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://kimmelserj.ru/categories/</loc>
+  </url>
+  
+  <url>
+    <loc>http://kimmelserj.ru/pages/</loc>
+  </url>
+  
+  <url>
+    <loc>http://kimmelserj.ru/tags/</loc>
+  </url>
+  
+  <url>
+    <loc>http://kimmelserj.ru/about/</loc>
+  </url>
+  
+</urlset>

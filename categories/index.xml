@@ -5,10 +5,6 @@
     <link>https://kimmelserj.ru/categories/</link>
     <description>Recent content in Categories on Киммель Сергей</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>ru-ru</language>
-    
-	<atom:link href="https://kimmelserj.ru/categories/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <language>ru-ru</language><atom:link href="https://kimmelserj.ru/categories/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>
